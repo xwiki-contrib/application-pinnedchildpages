@@ -1,0 +1,386 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="XWiki.PinnedChildPagesMacros" locale="">
+  <web>XWiki</web>
+  <name>PinnedChildPagesMacros</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>PinnedChildPagesMacros</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity output="false"}}
+#set ($PINNED_CHILD_PAGES_CLASS = 'XWiki.PinnedChildPagesClass')
+
+#**
+ * Returns the list of children pages of a given reference with ordered pinned pages first, then
+ * other children in default order, and excluding the WebPreferences child page.
+ *#
+#macro (getOrderedChildPages $reference $return)
+  ## NB: we could use a SQL query instead to alleviate the need to load all subpages, however
+  ## they are loaded in any case for displaying the navigation-toc tree with the headings.
+  ## Declare variable for storing first the pinned pages, then the other children
+  #set ($macro.orderedChildPages = [])
+  #set ($macro.page = $xwiki.getDocument($reference))
+  #set ($macro.pinnedChildPagesObject = $macro.page.getObject($PINNED_CHILD_PAGES_CLASS))
+  #if ($macro.pinnedChildPagesObject == $NULL)
+    #set ($return = $NULL)
+    #setVariable("$return", $NULL)
+  #else
+    #set ($macro.pinnedChildPages = $macro.pinnedChildPagesObject.getValue('pinnedChildPages'))
+    ## First add all pinned pages to orderedChildPages
+    #foreach ($reference in $macro.pinnedChildPages)
+      #set ($discard = $macro.orderedChildPages.add($reference))
+    #end
+    ## Then non-pinned children pages except WebPreferences
+    #set ($macro.id = $services.model.serialize($macro.page.documentReference))
+    #set ($macro.children = $services.tree.nestedPages.getChildren("document:$macro.id", 0, 10000))
+    #foreach ($childId in $macro.children)
+      #set ($childId = $childId.replace('document:', ''))
+      #set ($macro.reference = $services.model.resolveDocument($childId))
+      #set ($childId = $services.model.serialize($macro.reference, 'compactwiki'))
+      #if ($macro.orderedChildPages.indexOf($childId) &lt; 0 &amp;&amp; $macro.reference.name != 'WebPreferences')
+        #set ($discard = $macro.orderedChildPages.add($childId))
+      #end
+    #end
+    #set ($return = $NULL)
+    #setVariable("$return", $macro.orderedChildPages)
+  #end
+#end
+
+#**
+ * Displays ordered child pages of a given reference in a sortable list.
+ *#
+#macro (displaySortableChildPages $documentReference)
+  #set ($discard = $xwiki.ssx.use('XWiki.PinnedChildPagesMacros'))
+  #set ($discard = $xwiki.jsx.use('XWiki.PinnedChildPagesMacros'))
+  #getOrderedChildPages($documentReference, $orderedChildPages)
+  #if ($orderedChildPages != $NULL)
+    {{html clean="false"}}
+    &lt;ul class="xwiki-pinned-child-pages xwiki-sortable"&gt;
+    #foreach ($reference in $orderedChildPages)
+      &lt;li data-reference="$escapetool.xml($reference)"&gt;
+        #set ($macro.childPage = $xwiki.getDocument($reference))
+        $services.icon.renderHTML('page') &lt;a href="$xwiki.getURL($reference)"&gt;$macro.childPage.displayTitle&lt;/a&gt;
+      &lt;/li&gt;
+    #end
+    &lt;/ul&gt;
+    ## Add object number so that it can be obtained from JavaScript for storing the new order in the form before its submission.
+    #set ($macro.page = $xwiki.getDocument($documentReference))
+    #set ($macro.pinnedChildPagesObject = $macro.page.getObject($PINNED_CHILD_PAGES_CLASS))
+    &lt;input type="hidden" name="xwiki-pinned-child-pages-object-number" value="$macro.pinnedChildPagesObject.number"/&gt;
+    {{/html}}
+  #else
+    {{warning}}
+    $services.localization.render('document.pinnedChildPages.error')
+    {{/warning}}
+  #end
+#end
+{{/velocity}}</content>
+  <object>
+    <name>XWiki.PinnedChildPagesMacros</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>2c59ad56-c9c7-47e8-9891-e4f5444987dd</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require.config({
+  paths: {
+    'jquery-ui' : "$!services.webjars.url('jquery-ui', 'jquery-ui.min')"
+  },
+  shim: {
+    'jquery-ui' : ['jquery']
+  }
+});
+require(['jquery', 'jquery-ui'], function($) {
+  // TODO: escape reference value
+  var objectNumber = $('input[name="xwiki-pinned-child-pages-object-number"').val();
+  $('.xwiki-pinned-child-pages.xwiki-sortable').sortable({
+    stop: function(event, ui) {
+      $('#mainContentArea &gt; form .xwiki-pinned-child-pages-input').each(function() {
+        $(this).remove();
+      });
+      var form = $('#mainContentArea &gt; form');
+      form.find('.xwiki-pinned-child-pages li').each(function (index) {
+        var reference = $(this).data('reference')
+        var node = $('&lt;input type="hidden" class="xwiki-pinned-child-pages-input" name="XWiki.PinnedChildPagesClass_' + objectNumber + '_pinnedChildPages"/&gt;');
+        node.attr('value', reference);
+        form.append(node);
+      });
+    },
+    placeholder: 'xwiki-ui-sortable-placeholder'
+  });
+  $('.xwiki-sortable').disableSelection();
+});</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>XWiki.PinnedChildPagesMacros</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>8103769f-dc1e-4681-af45-9992dbf73cb7</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>.xwiki-pinned-child-pages.xwiki-sortable {
+  list-style: none;
+  padding: 0;
+  li {
+    display: inline-block;
+    padding: 0 0.3em;
+    background: darken(@breadcrumb-bg, 2%);
+    margin-bottom: 0.3em;
+    border-radius: @border-radius-base;
+    &amp;.ui-sortable-helper {
+      white-space: nowrap;
+      background: #428bca;
+      color: white;
+      padding: 0 0.3em 0 0.3em;
+      /* Force height otherwise jQuery-UI will compute a dynamic height which is sometimes too large. */
+      height: 1.5em !important;
+      opacity: 0.6;
+      a {
+        color: white;
+      }
+    }
+    &amp;.xwiki-ui-sortable-placeholder {
+      background: #428bca !important;
+      &amp;:before {
+        content: "target";
+      }
+      color: transparent;
+    }
+  }
+}
+
+
+
+</code>
+    </property>
+    <property>
+      <contentType>LESS</contentType>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+</xwikidoc>
