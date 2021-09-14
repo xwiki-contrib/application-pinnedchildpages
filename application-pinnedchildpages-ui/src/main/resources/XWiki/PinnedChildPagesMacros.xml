@@ -44,35 +44,30 @@
  * other children in default order, and excluding the WebPreferences child page.
  *#
 #macro (getOrderedChildPages $reference $return)
-  ## NB: we could use a SQL query instead to alleviate the need to load all subpages, however
-  ## they are loaded in any case for displaying the navigation-toc tree with the headings.
-  ## Declare variable for storing first the pinned pages, then the other children
+  ## Declare variable for storing the ordered child pages
   #set ($macro.orderedChildPages = [])
   #set ($macro.page = $xwiki.getDocument($reference))
   #set ($macro.pinnedChildPagesObject = $macro.page.getObject($PINNED_CHILD_PAGES_CLASS))
-  #if ($macro.pinnedChildPagesObject == $NULL)
-    #set ($return = $NULL)
-    #setVariable("$return", $NULL)
-  #else
+  ## First add all pinned pages if any
+  #if ($macro.pinnedChildPagesObject != $NULL)
     #set ($macro.pinnedChildPages = $macro.pinnedChildPagesObject.getValue('pinnedChildPages'))
-    ## First add all pinned pages to orderedChildPages
-    #foreach ($reference in $macro.pinnedChildPages)
-      #set ($discard = $macro.orderedChildPages.add($reference))
+    #if ($macro.pinnedChildPages != $NULL &amp;&amp; $macro.pinnedChildPages.size() &gt; 0)
+      #set ($discard = $macro.orderedChildPages.addAll($macro.pinnedChildPages))
     #end
-    ## Then non-pinned children pages except WebPreferences
-    #set ($macro.id = $services.model.serialize($macro.page.documentReference))
-    #set ($macro.children = $services.tree.nestedPages.getChildren("document:$macro.id", 0, 10000))
-    #foreach ($childId in $macro.children)
-      #set ($childId = $childId.replace('document:', ''))
-      #set ($macro.reference = $services.model.resolveDocument($childId))
-      #set ($childId = $services.model.serialize($macro.reference, 'compactwiki'))
-      #if ($macro.orderedChildPages.indexOf($childId) &lt; 0 &amp;&amp; $macro.reference.name != 'WebPreferences')
-        #set ($discard = $macro.orderedChildPages.add($childId))
-      #end
-    #end
-    #set ($return = $NULL)
-    #setVariable("$return", $macro.orderedChildPages)
   #end
+  ## Then add non-pinned children pages except WebPreferences
+  #set ($macro.id = $services.model.serialize($macro.page.documentReference))
+  #set ($macro.children = $services.tree.nestedPages.getChildren("document:$macro.id", 0, 10000))
+  #foreach ($childId in $macro.children)
+    #set ($childId = $childId.replace('document:', ''))
+    #set ($macro.reference = $services.model.resolveDocument($childId))
+    #set ($childId = $services.model.serialize($macro.reference, 'compactwiki'))
+    #if ($macro.orderedChildPages.indexOf($childId) &lt; 0 &amp;&amp; $macro.reference.name != 'WebPreferences')
+      #set ($discard = $macro.orderedChildPages.add($childId))
+    #end
+  #end
+  #set ($return = $NULL)
+  #setVariable("$return", $macro.orderedChildPages)
 #end
 
 #**
@@ -204,9 +199,7 @@ require(['jquery', 'jquery-ui'], function($) {
   var objectNumber = $('input[name="xwiki-pinned-child-pages-object-number"').val();
   $('.xwiki-pinned-child-pages.xwiki-sortable').sortable({
     stop: function(event, ui) {
-      $('#mainContentArea &gt; form .xwiki-pinned-child-pages-input').each(function() {
-        $(this).remove();
-      });
+      $('#mainContentArea &gt; form .xwiki-pinned-child-pages-input').remove();
       var form = $('#mainContentArea &gt; form');
       form.find('.xwiki-pinned-child-pages li').each(function (index) {
         var reference = $(this).data('reference')

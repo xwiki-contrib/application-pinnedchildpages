@@ -30,10 +30,8 @@ import org.slf4j.Logger;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.job.event.JobStartedEvent;
-import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
-import org.xwiki.model.reference.EntityReferenceProvider;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.reference.PageReference;
@@ -90,9 +88,6 @@ public class PinnedChildPagesUpdaterListener extends AbstractEventListener
 
     @Inject
     protected PageReferenceResolver<EntityReference> pageReferenceResolver;
-
-    @Inject
-    private EntityReferenceProvider defaultEntityReferenceProvider;
 
     /**
      * This is the default constructor.
@@ -157,10 +152,12 @@ public class PinnedChildPagesUpdaterListener extends AbstractEventListener
                 String originalId = compactWikiSerializer.serialize(originalReference);
                 String newId = compactWikiSerializer.serialize(newReference);
                 int index = pinnedChildPages.indexOf(originalId);
-                pinnedChildPages.set(index, newId);
-                String name = getName(newReference);
-                wiki.saveDocument(parentPage, String.format("Updated pinned child pages after rename of %s", name),
-                    true, context);
+                if (index >= 0) {
+                    pinnedChildPages.set(index, newId);
+                    String name = getName(newReference);
+                    wiki.saveDocument(parentPage, String.format("Updated pinned child pages after rename of %s", name),
+                        true, context);
+                }
             } else {
                 maybeUnpinChildPage(originalReference);
             }
@@ -208,20 +205,14 @@ public class PinnedChildPagesUpdaterListener extends AbstractEventListener
     }
 
     /**
-     * Returns either the reference name if the passed reference is terminal, and the parent reference name
-     * otherwise.
+     * Converts a given DocumentReference into a PageReference and returns its name. This allows to obtain a short name
+     * for a given reference, without the default part.
      *
      * @param reference a DocumentReference
      * @return reference short name
      */
     public String getName(DocumentReference reference)
     {
-        String defaultDocumentName =
-            this.defaultEntityReferenceProvider.getDefaultReference(EntityType.DOCUMENT).getName();
-        String name = reference.getName();
-        if (name.equals(defaultDocumentName)) {
-            return reference.getParent().getName();
-        }
-        return name;
+        return pageReferenceResolver.resolve(reference).getName();
     }
 }
