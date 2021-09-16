@@ -17,15 +17,20 @@
 Use the following set up for each test case below:
 
 * Create page P1
-* Add children page to P1
-* Add PinnedPagesObject to P1, pointing at some of the children pages
+* Add child pages to P1
+* Add PinnedPagesObject to P1, pointing at some of the child pages
 
 Each test should be executed both with terminal and non-terminal pages.
 
 ## Pinned Page Removal
 
-* Scenario: remove one of the P1 children pages that is pinned
+* Scenario: delete one of the P1 child pages that is pinned
 * Expected result: P1 pinned pages does not contain the removed page anymore
+
+## Not Pinned Child Page Removal
+
+* Scenario: delete one of the P1 child pages that is not pinned
+* Expected result: the page gets deleted successfully and the parent page pinned pages remains unchanged
 
 ## Pinned Page Move With Same Parent
 
