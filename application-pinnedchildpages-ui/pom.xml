@@ -31,13 +31,13 @@
 	<artifactId>application-pinnedchildpages-ui</artifactId>
 	<name>Pinned Child Pages Application</name>
 	<packaging>xar</packaging>
-	<description>Pin child pages in a specific order</description>
+	<description>Allows to pin subpages in a specific order</description>
 	<properties>
 		<xwiki.extension.name>Pinned Child Pages Application</xwiki.extension.name>
 		<xwiki.extension.category>application</xwiki.extension.category>
 		<xwiki.release.jira.skip>true</xwiki.release.jira.skip>
 		<xwiki.issueManagement.system>jira</xwiki.issueManagement.system>
-		<xwiki.issueManagement.url>https://jira.xwiki.org/projects/</xwiki.issueManagement.url>
+		<xwiki.issueManagement.url>https://jira.xwiki.org/projects/XPINPAGES/</xwiki.issueManagement.url>
 		<platform.version>11.1</platform.version>
 	</properties>
 	<dependencies>

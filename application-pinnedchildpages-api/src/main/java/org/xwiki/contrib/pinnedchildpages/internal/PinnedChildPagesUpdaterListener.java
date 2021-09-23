@@ -29,11 +29,11 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.pinnedchildpages.PinnedChildPagesService;
 import org.xwiki.job.event.JobStartedEvent;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.reference.PageReference;
 import org.xwiki.model.reference.PageReferenceResolver;
 import org.xwiki.observation.AbstractEventListener;
@@ -61,17 +61,6 @@ public class PinnedChildPagesUpdaterListener extends AbstractEventListener
      * The name of the event listener.
      */
     public static final String LISTENER_NAME = "pinnedChildPages.listener";
-
-    /**
-     * Reference to XWiki Class PinnedChildPagesClass.
-     */
-    public static final LocalDocumentReference
-        PINNED_CHILD_PAGES_CLASS_REFERENCE = new LocalDocumentReference("XWiki", "PinnedChildPagesClass");
-
-    /**
-     * Name of the field storing the list of pinned child pages.
-     */
-    public static final String PINNED_CHILD_PAGES_FIELD = "pinnedChildPages";
 
     @Inject
     protected Logger logger;
@@ -142,13 +131,15 @@ public class PinnedChildPagesUpdaterListener extends AbstractEventListener
 
         // Check whether the parent of the moved page has a PINNED_CHILD_PAGES_CLASS object
         XWikiDocument parentPage = wiki.getDocument(originalParentReference, context).clone();
-        BaseObject pinnedChildPagesObject = parentPage.getXObject(PINNED_CHILD_PAGES_CLASS_REFERENCE);
+        BaseObject pinnedChildPagesObject = parentPage.getXObject(
+            PinnedChildPagesService.PINNED_CHILD_PAGES_CLASS_REFERENCE);
         if (pinnedChildPagesObject != null) {
             EntityReference newParentReference = getParentReference(newReference);
             // If page kept the same parent, just update its reference in the parent's pinned pages, otherwise
             // remove it from its original parent pinned pages.
             if (originalParentReference.equals(newParentReference)) {
-                List pinnedChildPages = pinnedChildPagesObject.getListValue(PINNED_CHILD_PAGES_FIELD);
+                List pinnedChildPages = pinnedChildPagesObject.getListValue(
+                    PinnedChildPagesService.PINNED_CHILD_PAGES_FIELD);
                 String originalId = compactWikiSerializer.serialize(originalReference);
                 String newId = compactWikiSerializer.serialize(newReference);
                 int index = pinnedChildPages.indexOf(originalId);
@@ -177,13 +168,16 @@ public class PinnedChildPagesUpdaterListener extends AbstractEventListener
         XWiki wiki = context.getWiki();
         EntityReference parentReference = getParentReference(reference);
         XWikiDocument parentPage = wiki.getDocument(parentReference, context).clone();
-        BaseObject pinnedChildPagesObject = parentPage.getXObject(PINNED_CHILD_PAGES_CLASS_REFERENCE);
+        BaseObject pinnedChildPagesObject = parentPage.getXObject(
+            PinnedChildPagesService.PINNED_CHILD_PAGES_CLASS_REFERENCE);
         if (pinnedChildPagesObject != null) {
-            List pinnedChildPages = pinnedChildPagesObject.getListValue(PINNED_CHILD_PAGES_FIELD);
+            List pinnedChildPages =
+                pinnedChildPagesObject.getListValue(PinnedChildPagesService.PINNED_CHILD_PAGES_FIELD);
             String deletedPageId = compactWikiSerializer.serialize(reference);
             boolean result = pinnedChildPages.remove(deletedPageId);
             if (result) {
-                pinnedChildPagesObject.setDBStringListValue(PINNED_CHILD_PAGES_FIELD, pinnedChildPages);
+                pinnedChildPagesObject
+                    .setDBStringListValue(PinnedChildPagesService.PINNED_CHILD_PAGES_FIELD, pinnedChildPages);
                 String name = getName(reference);
                 wiki.saveDocument(parentPage,
                     String.format("Removed subpage %s from pinned child pages list", name), true,

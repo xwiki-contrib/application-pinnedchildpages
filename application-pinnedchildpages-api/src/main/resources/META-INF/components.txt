@@ -1,1 +1,3 @@
 org.xwiki.contrib.pinnedchildpages.internal.PinnedChildPagesUpdaterListener
+org.xwiki.contrib.pinnedchildpages.internal.DefaultPinnedChildPagesService
+org.xwiki.contrib.pinnedchildpages.script.PinnedChildPagesScriptService
