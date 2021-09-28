@@ -3,14 +3,16 @@
 ## PinnedChildPages visual ordering
 
 * Scenario
-  * Create AWM application with a simple "Title" field, eg Book
-  * Create Book entry, eg "Alice in Wonderland", and a few subpages: Down the Rabbit-Hole, The Pool of Tears, A Caucus-Race and a Long Tale
-  * Customize BookSheet as follows: 
+  * Create AWM Book application with a simple `title` field
+  * Edit `BookTemplate` and add object `XWiki.PinnedChildPagesClass` to it
+  * Create Book entry, eg "Alice in Wonderland", and a few child pages: "Down the Rabbit-Hole", "The Pool of Tears", "A
+   Caucus-Race and a Long Tale"
+  * Customize `BookSheet` as follows: 
     * Add `{{include reference="XWiki.PinnedChildPagesMacros"/}}` at the top
-    * Add `#displaySortableChildPages($doc.documentReference)` in the sheet form part
-  * Edit page "Alice in Wonderland", reorder the subpages, save
+    * Add `#displaySortableChildren($doc.documentReference)` in the sheet form part
+  * Edit page "Alice in Wonderland", reorder the subpages via drag and drop, save
 * Expected result
-  * Child pages can be reordered and the new order can be saved
+  * Child pages can be reordered and the new order is saved in the `XWiki.PinnedChildPagesClass` object
 
 ## Tests setup
 
