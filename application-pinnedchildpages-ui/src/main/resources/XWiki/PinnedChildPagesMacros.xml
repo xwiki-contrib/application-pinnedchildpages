@@ -50,7 +50,7 @@
     {{html clean="false"}}
     &lt;ul class="xwiki-pinned-child-pages xwiki-sortable"&gt;
     #foreach ($reference in $orderedChildPages)
-      &lt;li data-reference="$escapetool.xml($reference)"&gt;
+      &lt;li data-reference="$escapetool.xml($services.model.serialize($reference, 'compactwiki'))"&gt;
         #set ($macro.childPage = $xwiki.getDocument($reference))
         $services.icon.renderHTML('page') &lt;a href="$xwiki.getURL($reference)"&gt;$macro.childPage.displayTitle&lt;/a&gt;
       &lt;/li&gt;
