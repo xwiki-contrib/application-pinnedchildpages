@@ -83,7 +83,8 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
         }
         // Then add non-pinned children pages except WebPreferences
         String name = entityTreeNodeIdConverter.convert(String.class, reference);
-        List<String> childNodeIds = tree.getChildren(name, 0, 10000);
+        int childCount = tree.getChildCount(name);
+        List<String> childNodeIds = tree.getChildren(name, 0, childCount);
         for (String childNodeId : childNodeIds) {
             // FIXME: the conversion below does not produce valid DocumentReferences for non-terminal pages
             // EntityReference childReference = entityTreeNodeIdConverter.convert(EntityReference.class, childName);
