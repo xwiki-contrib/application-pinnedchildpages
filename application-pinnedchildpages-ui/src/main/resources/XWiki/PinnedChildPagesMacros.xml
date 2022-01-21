@@ -40,22 +40,39 @@
 #set ($PINNED_CHILD_PAGES_CLASS = 'XWiki.PinnedChildPagesClass')
 
 #**
- * Displays ordered child pages of a given reference in a sortable list.
+ * Displays ordered child pages of a given reference in a sortable list, optionally
+ * keeping only children with XObject of a given class.
  *#
-#macro (displaySortableChildren $documentReference)
+#macro (displaySortableChildren $documentReference $className $emptyListMessageKey)
   #set ($discard = $xwiki.ssx.use('XWiki.PinnedChildPagesMacros'))
   #set ($discard = $xwiki.jsx.use('XWiki.PinnedChildPagesMacros'))
-  #set ($orderedChildPages = $services.pinnedChildPages.getChildren($documentReference))
-  #if ($orderedChildPages != $NULL)
+  #set ($macro.orderedChildPages = $services.pinnedChildPages.getChildren($documentReference))
+  #set ($macro.counter = 0)
+  #if ($macro.orderedChildPages != $NULL)
     {{html clean="false"}}
     &lt;ul class="xwiki-pinned-child-pages xwiki-sortable"&gt;
-    #foreach ($reference in $orderedChildPages)
-      &lt;li data-reference="$escapetool.xml($services.model.serialize($reference, 'compactwiki'))"&gt;
-        #set ($macro.childPage = $xwiki.getDocument($reference))
-        $services.icon.renderHTML('page') &lt;a href="$xwiki.getURL($reference)"&gt;$macro.childPage.displayTitle&lt;/a&gt;
-      &lt;/li&gt;
+    #foreach ($reference in $macro.orderedChildPages)
+      #set ($macro.childPage = $xwiki.getDocument($reference))
+      #set ($macro.flag = true)
+      #if ($className != $NULL)
+        #set ($macro.childPageObj = $macro.childPage.getObject($className))
+        #if ($macro.childPageObj == $NULL)
+          #set ($macro.flag = false)
+        #end
+      #end
+      #if ($macro.flag == true)
+        &lt;li data-reference="$escapetool.xml($services.model.serialize($reference, 'compactwiki'))"&gt;
+          $services.icon.renderHTML('page') &lt;a href="$xwiki.getURL($reference)"&gt;$macro.childPage.displayTitle&lt;/a&gt;
+        &lt;/li&gt;
+        #set ($macro.counter = $mathtool.add($macro.counter, 1))
+      #end
     #end
     &lt;/ul&gt;
+    #if ($macro.counter == 0 &amp;&amp; $emptyListMessageKey)
+    &lt;div class="xwiki-pinned-child-pages-empty-message"&gt;
+      $services.localization.render($emptyListMessageKey)
+    &lt;/div&gt;
+    #end
     ## Add object number so that it can be obtained from JavaScript for storing the new order in the form before its submission.
     #set ($macro.page = $xwiki.getDocument($documentReference))
     #set ($macro.pinnedChildPagesObject = $macro.page.getObject($PINNED_CHILD_PAGES_CLASS))
