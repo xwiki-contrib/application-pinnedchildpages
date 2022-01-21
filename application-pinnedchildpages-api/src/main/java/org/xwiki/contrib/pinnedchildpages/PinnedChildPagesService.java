@@ -49,9 +49,17 @@ public interface PinnedChildPagesService
      * Returns the list of child pages of a given reference with ordered pinned pages first, then other children in
      * default order, and excluding the WebPreferences child page.
      *
-     * @param reference a page reference
+     * @param reference a reference to a page
      * @return list of child pages
      * @throws XWikiException in case an error occurs
      */
     List<EntityReference> getChildren(EntityReference reference) throws XWikiException;
+
+    /**
+     * Returns references to the pinned child pages of a given page.
+     * @param reference a reference to a page
+     * @return list of pinned child pages references
+     * @throws XWikiException in case an error occurs
+     */
+    List<EntityReference> getPinnedChildPages(EntityReference reference) throws XWikiException;
 }

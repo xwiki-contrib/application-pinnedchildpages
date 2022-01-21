@@ -66,21 +66,9 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
     @Override
     public List<EntityReference> getChildren(EntityReference reference) throws XWikiException
     {
-        XWikiContext xcontext = this.xcontextProvider.get();
-        XWiki wiki = xcontext.getWiki();
-        List<EntityReference> orderedChildPages = new ArrayList<>();
-        XWikiDocument doc = wiki.getDocument(reference, xcontext);
-        BaseObject pinnedChildPagesObject = doc.getXObject(PINNED_CHILD_PAGES_CLASS_REFERENCE);
-        // First add pinned pages, if any
-        if (pinnedChildPagesObject != null) {
-            List<String> pinnedChildPages = pinnedChildPagesObject.getListValue(PINNED_CHILD_PAGES_FIELD);
-            if (pinnedChildPages != null && pinnedChildPages.size() > 0) {
-                for (String pinnedChildPageName : pinnedChildPages) {
-                    DocumentReference pinnedChildPageReference = documentReferenceResolver.resolve(pinnedChildPageName);
-                    orderedChildPages.add(pinnedChildPageReference);
-                }
-            }
-        }
+        // First get pinned pages, if any
+        List<EntityReference> orderedChildPages = getPinnedChildPages(reference);
+
         // Then add non-pinned children pages except WebPreferences
         String name = entityTreeNodeIdConverter.convert(String.class, reference);
         int childCount = tree.getChildCount(name);
@@ -95,5 +83,26 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
             }
         }
         return orderedChildPages;
+    }
+
+    @Override
+    public List<EntityReference> getPinnedChildPages(EntityReference reference) throws XWikiException
+    {
+        XWikiContext xcontext = this.xcontextProvider.get();
+        XWiki wiki = xcontext.getWiki();
+        List<EntityReference> pinnedChildPageReferences = new ArrayList<>();
+        XWikiDocument doc = wiki.getDocument(reference, xcontext);
+        BaseObject pinnedChildPagesObject = doc.getXObject(PINNED_CHILD_PAGES_CLASS_REFERENCE);
+        // First add pinned pages, if any
+        if (pinnedChildPagesObject != null) {
+            List<String> pinnedChildPages = pinnedChildPagesObject.getListValue(PINNED_CHILD_PAGES_FIELD);
+            if (pinnedChildPages != null && pinnedChildPages.size() > 0) {
+                for (String pinnedChildPageName : pinnedChildPages) {
+                    DocumentReference pinnedChildPageReference = documentReferenceResolver.resolve(pinnedChildPageName);
+                    pinnedChildPageReferences.add(pinnedChildPageReference);
+                }
+            }
+        }
+        return pinnedChildPageReferences;
     }
 }

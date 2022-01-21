@@ -19,6 +19,7 @@
  */
 package org.xwiki.contrib.pinnedchildpages.script;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -70,7 +71,23 @@ public class PinnedChildPagesScriptService implements ScriptService
         } catch (XWikiException e) {
             xcontextProvider.get().put(ERROR_MESSAGE, e.toString());
             logger.error(e.toString(), e);
-            return null;
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Returns a list of references to the pinned child pages of a given page reference.
+     * @param reference a reference to a page
+     * @return list of pinned child page references
+     */
+    public List<EntityReference> getPinnedChildPages(EntityReference reference)
+    {
+        try {
+            return pinnedChildPagesService.getPinnedChildPages(reference);
+        } catch (XWikiException e) {
+            xcontextProvider.get().put(ERROR_MESSAGE, e.toString());
+            logger.error(e.toString(), e);
+            return new ArrayList<>();
         }
     }
 }
