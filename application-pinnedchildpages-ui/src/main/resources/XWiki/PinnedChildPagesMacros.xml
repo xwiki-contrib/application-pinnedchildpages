@@ -62,7 +62,7 @@
       #end
       #if ($macro.flag == true)
         &lt;li data-reference="$escapetool.xml($services.model.serialize($reference, 'compactwiki'))"&gt;
-          $services.icon.renderHTML('page') &lt;a href="$xwiki.getURL($reference)"&gt;$macro.childPage.displayTitle&lt;/a&gt;
+          $services.icon.renderHTML('page') &lt;a href="$escapetool.xml($xwiki.getURL($reference))"&gt;$macro.childPage.displayTitle&lt;/a&gt;
         &lt;/li&gt;
         #set ($macro.counter = $mathtool.add($macro.counter, 1))
       #end
@@ -181,22 +181,26 @@
   }
 });
 require(['jquery', 'jquery-ui'], function($) {
-  // TODO: escape reference value
+  function storeChildPagesOrderInForm() {
+    $('#mainContentArea &gt; form .xwiki-pinned-child-pages-input').remove();
+    var form = $('#mainContentArea &gt; form');
+    form.find('.xwiki-pinned-child-pages li').each(function (index) {
+      var reference = $(this).data('reference')
+      var node = $('&lt;input type="hidden" class="xwiki-pinned-child-pages-input" name="XWiki.PinnedChildPagesClass_' + objectNumber + '_pinnedChildPages"/&gt;');
+      node.attr('value', reference);
+      form.append(node);
+    });
+  }
+
   var objectNumber = $('input[name="xwiki-pinned-child-pages-object-number"').val();
   $('.xwiki-pinned-child-pages.xwiki-sortable').sortable({
     stop: function(event, ui) {
-      $('#mainContentArea &gt; form .xwiki-pinned-child-pages-input').remove();
-      var form = $('#mainContentArea &gt; form');
-      form.find('.xwiki-pinned-child-pages li').each(function (index) {
-        var reference = $(this).data('reference')
-        var node = $('&lt;input type="hidden" class="xwiki-pinned-child-pages-input" name="XWiki.PinnedChildPagesClass_' + objectNumber + '_pinnedChildPages"/&gt;');
-        node.attr('value', reference);
-        form.append(node);
-      });
+      storeChildPagesOrderInForm();
     },
     placeholder: 'xwiki-ui-sortable-placeholder'
   });
   $('.xwiki-sortable').disableSelection();
+  storeChildPagesOrderInForm();
 });</code>
     </property>
     <property>
