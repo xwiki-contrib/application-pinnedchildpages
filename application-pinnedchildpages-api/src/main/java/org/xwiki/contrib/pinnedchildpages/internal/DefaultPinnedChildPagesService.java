@@ -98,7 +98,8 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
             List<String> pinnedChildPages = pinnedChildPagesObject.getListValue(PINNED_CHILD_PAGES_FIELD);
             if (pinnedChildPages != null && pinnedChildPages.size() > 0) {
                 for (String pinnedChildPageName : pinnedChildPages) {
-                    DocumentReference pinnedChildPageReference = documentReferenceResolver.resolve(pinnedChildPageName);
+                    DocumentReference pinnedChildPageReference =
+                        documentReferenceResolver.resolve(pinnedChildPageName, reference);
                     pinnedChildPageReferences.add(pinnedChildPageReference);
                 }
             }
