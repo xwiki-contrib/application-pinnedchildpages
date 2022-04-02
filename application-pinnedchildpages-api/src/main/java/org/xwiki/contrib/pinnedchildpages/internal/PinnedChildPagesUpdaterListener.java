@@ -140,8 +140,8 @@ public class PinnedChildPagesUpdaterListener extends AbstractEventListener
             if (originalParentReference.equals(newParentReference)) {
                 List pinnedChildPages = pinnedChildPagesObject.getListValue(
                     PinnedChildPagesService.PINNED_CHILD_PAGES_FIELD);
-                String originalId = compactWikiSerializer.serialize(originalReference);
-                String newId = compactWikiSerializer.serialize(newReference);
+                String originalId = compactWikiSerializer.serialize(originalReference, originalParentReference);
+                String newId = compactWikiSerializer.serialize(newReference, newParentReference);
                 int index = pinnedChildPages.indexOf(originalId);
                 if (index >= 0) {
                     pinnedChildPages.set(index, newId);
@@ -173,7 +173,7 @@ public class PinnedChildPagesUpdaterListener extends AbstractEventListener
         if (pinnedChildPagesObject != null) {
             List pinnedChildPages =
                 pinnedChildPagesObject.getListValue(PinnedChildPagesService.PINNED_CHILD_PAGES_FIELD);
-            String deletedPageId = compactWikiSerializer.serialize(reference);
+            String deletedPageId = compactWikiSerializer.serialize(reference, parentReference);
             boolean result = pinnedChildPages.remove(deletedPageId);
             if (result) {
                 pinnedChildPagesObject
