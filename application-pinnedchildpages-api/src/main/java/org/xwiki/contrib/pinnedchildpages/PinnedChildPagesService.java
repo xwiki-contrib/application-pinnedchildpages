@@ -63,4 +63,12 @@ public interface PinnedChildPagesService
      */
     List<EntityReference> getPinnedChildPages(EntityReference reference) throws XWikiException;
 
+    /**
+     * Returns references to the next siblings of a given page.
+     * @param reference a reference to a page
+     * @return list of next child pages
+     * @throws XWikiException in case an error occurs
+     */
+    List<EntityReference> getNextSiblings(EntityReference reference) throws XWikiException;
+
 }

@@ -105,6 +105,8 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
     @Override
     public List<EntityReference> getPinnedChildPages(EntityReference reference) throws XWikiException
     {
+        // TODO: if the reference is a wiki reference, then the pinned child pages should be retrieved from the object
+        // attached to XWiki.XWikiPreferences
         XWikiContext xcontext = this.xcontextProvider.get();
         XWiki wiki = xcontext.getWiki();
         List<EntityReference> pinnedChildPageReferences = new ArrayList<>();
@@ -127,8 +129,22 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
         return pinnedChildPageReferences;
     }
 
+    @Override
+    public List<EntityReference> getNextSiblings(EntityReference reference) throws XWikiException
+    {
+        PageReference pageReference = getPageReference(reference);
+        EntityReference parent = pageReference.getParent();
+        List<EntityReference> orderedChildren = getChildren(parent);
+        int index = orderedChildren.indexOf(pageReference);
+        if (index >= 0 && index < orderedChildren.size()) {
+            return orderedChildren.subList(index + 1, orderedChildren.size());
+        }
+        return new ArrayList<>();
+    }
+
     /**
      * Converts a PageReference to a DocumentReference.
+     *
      * @param reference a PageReference
      * @return the given reference converted to a DocumentReference
      */
@@ -139,6 +155,7 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
 
     /**
      * Converts a DocumentReference to a PageReference.
+     *
      * @param reference a DocumentReference
      * @return the given reference converted to a PageReference
      */
