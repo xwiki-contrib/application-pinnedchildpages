@@ -62,4 +62,5 @@ public interface PinnedChildPagesService
      * @throws XWikiException in case an error occurs
      */
     List<EntityReference> getPinnedChildPages(EntityReference reference) throws XWikiException;
+
 }
