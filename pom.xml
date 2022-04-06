@@ -48,4 +48,7 @@
     <module>application-pinnedchildpages-api</module>
     <module>application-pinnedchildpages-ui</module>
   </modules>
+  <properties>
+    <xwiki.spoon.skip>true</xwiki.spoon.skip>
+  </properties>
 </project>
