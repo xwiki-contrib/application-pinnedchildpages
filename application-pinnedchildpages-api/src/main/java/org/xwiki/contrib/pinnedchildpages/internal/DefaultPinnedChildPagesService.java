@@ -80,7 +80,7 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
         // Make sure to call the entityTreeNodeIdConverter with a DocumentReference otherwise it will fail
         EntityReference documentReference = reference;
         if (reference instanceof PageReference) {
-            documentReference = getDocumentReference((PageReference) reference);
+            documentReference = getDocumentReference(reference);
         }
 
         // Then add non-pinned children pages except WebPreferences
@@ -134,8 +134,11 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
     {
         PageReference pageReference = getPageReference(reference);
         EntityReference parent = pageReference.getParent();
+        if (reference instanceof DocumentReference) {
+            parent = getDocumentReference(parent);
+        }
         List<EntityReference> orderedChildren = getChildren(parent);
-        int index = orderedChildren.indexOf(pageReference);
+        int index = orderedChildren.indexOf(reference);
         if (index >= 0 && index < orderedChildren.size()) {
             return orderedChildren.subList(index + 1, orderedChildren.size());
         }
@@ -159,7 +162,7 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
      * @param reference a PageReference
      * @return the given reference converted to a DocumentReference
      */
-    public DocumentReference getDocumentReference(PageReference reference)
+    public DocumentReference getDocumentReference(EntityReference reference)
     {
         return pageDocumentReferenceResolver.resolve(reference);
     }
