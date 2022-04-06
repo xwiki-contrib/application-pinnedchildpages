@@ -142,6 +142,17 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
         return new ArrayList<>();
     }
 
+    @Override
+    public List<EntityReference> getNextSiblings(EntityReference reference, int limit) throws XWikiException
+    {
+        List<EntityReference> siblings = getNextSiblings(reference);
+        if (siblings.size() > limit) {
+            return siblings.subList(0, limit);
+        } else {
+            return siblings;
+        }
+    }
+
     /**
      * Converts a PageReference to a DocumentReference.
      *

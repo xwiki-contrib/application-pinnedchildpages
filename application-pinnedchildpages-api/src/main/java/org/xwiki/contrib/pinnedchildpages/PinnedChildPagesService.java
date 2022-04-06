@@ -71,4 +71,13 @@ public interface PinnedChildPagesService
      */
     List<EntityReference> getNextSiblings(EntityReference reference) throws XWikiException;
 
+    /**
+     * Returns references to the next siblings of a given page, up to a limit.
+     * @param reference a reference to a page
+     * @param limit maximum number of entries to be returned
+     * @return list of next child pages
+     * @throws XWikiException in case an error occurs
+     */
+    List<EntityReference> getNextSiblings(EntityReference reference, int limit) throws XWikiException;
+
 }

@@ -94,6 +94,7 @@ public class PinnedChildPagesScriptService implements ScriptService
 
     /**
      * Returns next siblings of a given page.
+     *
      * @param reference a reference to a page
      * @return list of next siblings
      */
@@ -101,6 +102,24 @@ public class PinnedChildPagesScriptService implements ScriptService
     {
         try {
             return pinnedChildPagesService.getNextSiblings(reference);
+        } catch (XWikiException e) {
+            xcontextProvider.get().put(ERROR_MESSAGE, e.toString());
+            logger.error(e.toString(), e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Returns next siblings of a given page, up to a given limit.
+     *
+     * @param reference a reference to a page
+     * @param limit maximum of entries to be returned
+     * @return list of next siblings
+     */
+    public List<EntityReference> getNextSiblings(EntityReference reference, int limit)
+    {
+        try {
+            return pinnedChildPagesService.getNextSiblings(reference, limit);
         } catch (XWikiException e) {
             xcontextProvider.get().put(ERROR_MESSAGE, e.toString());
             logger.error(e.toString(), e);
