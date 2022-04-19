@@ -126,4 +126,64 @@ public class PinnedChildPagesScriptService implements ScriptService
             return new ArrayList<>();
         }
     }
+
+    /**
+     * Returns next sibling.
+     *
+     * @param reference a page
+     * @return next sibling
+     * @throws XWikiException in case of error
+     */
+    public EntityReference getNextSibling(EntityReference reference) throws XWikiException
+    {
+        return pinnedChildPagesService.getNextSibling(reference);
+    }
+
+    /**
+     * Returns previous sibling of a page.
+     *
+     * @param reference a page
+     * @return previous sibling
+     * @throws XWikiException in case of error
+     */
+    public EntityReference getPreviousSibling(EntityReference reference) throws XWikiException
+    {
+        return pinnedChildPagesService.getPreviousSibling(reference);
+    }
+
+    /**
+     * Returns index of a given reference in list of pinned pages.
+     * @param reference a page
+     * @return page index in list of pinned pages
+     * @throws XWikiException in case of error
+     */
+    public int indexOf(EntityReference reference) throws XWikiException
+    {
+        return pinnedChildPagesService.indexOf(reference);
+    }
+
+    /**
+     * Returns previous siblings.
+     *
+     * @param reference a page
+     * @return previous siblings
+     * @throws XWikiException in case of error
+     */
+    public List<EntityReference> getPreviousSiblings(EntityReference reference) throws XWikiException
+    {
+        return pinnedChildPagesService.getPreviousSiblings(reference);
+    }
+
+    /**
+     * Returns previous siblings of a page.
+     *
+     * @param reference a page
+     * @param limit max number of siblings
+     * @return siblings
+     * @throws XWikiException in case of error
+     */
+    public List<EntityReference> getPreviousSiblings(EntityReference reference, int limit) throws XWikiException
+    {
+        return pinnedChildPagesService.getPreviousSiblings(reference, limit);
+    }
 }

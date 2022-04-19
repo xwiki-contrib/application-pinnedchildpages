@@ -20,6 +20,7 @@
 package org.xwiki.contrib.pinnedchildpages.internal;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -51,6 +52,15 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class DefaultPinnedChildPagesService implements PinnedChildPagesService
 {
+    /**
+     * Indicates siblings traversal direction.
+     */
+    enum Direction
+    {
+        PREVIOUS,
+        NEXT
+    }
+
     @Inject
     private Provider<XWikiContext> xcontextProvider;
 
@@ -76,7 +86,9 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
     {
         // First get pinned pages, if any
         List<EntityReference> orderedChildPages = getPinnedChildPages(reference);
-
+        if (reference == null) {
+            return orderedChildPages;
+        }
         // Make sure to call the entityTreeNodeIdConverter with a DocumentReference otherwise it will fail
         EntityReference documentReference = reference;
         if (reference instanceof PageReference) {
@@ -107,9 +119,12 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
     {
         // TODO: if the reference is a wiki reference, then the pinned child pages should be retrieved from the object
         // attached to XWiki.XWikiPreferences
+        List<EntityReference> pinnedChildPageReferences = new ArrayList<>();
+        if (reference == null) {
+            return pinnedChildPageReferences;
+        }
         XWikiContext xcontext = this.xcontextProvider.get();
         XWiki wiki = xcontext.getWiki();
-        List<EntityReference> pinnedChildPageReferences = new ArrayList<>();
         XWikiDocument doc = wiki.getDocument(reference, xcontext);
         BaseObject pinnedChildPagesObject = doc.getXObject(PINNED_CHILD_PAGES_CLASS_REFERENCE);
         // First add pinned pages, if any
@@ -130,30 +145,119 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
     }
 
     @Override
+    public EntityReference getPreviousSibling(EntityReference reference) throws XWikiException
+    {
+        return getSibling(reference, Direction.PREVIOUS);
+    }
+
+    @Override
+    public List<EntityReference> getPreviousSiblings(EntityReference reference) throws XWikiException
+    {
+        return getSiblings(reference, Direction.PREVIOUS);
+    }
+
+    @Override
+    public List<EntityReference> getPreviousSiblings(EntityReference reference, int limit) throws XWikiException
+    {
+        return getSiblings(reference, Direction.PREVIOUS, limit);
+    }
+
+    @Override
     public List<EntityReference> getNextSiblings(EntityReference reference) throws XWikiException
+    {
+        return getSiblings(reference, Direction.NEXT);
+    }
+
+    @Override
+    public List<EntityReference> getNextSiblings(EntityReference reference, int limit) throws XWikiException
+    {
+        return getSiblings(reference, Direction.NEXT, limit);
+    }
+
+    @Override
+    public EntityReference getNextSibling(EntityReference reference) throws XWikiException
+    {
+        return getSibling(reference, Direction.NEXT);
+    }
+
+    @Override
+    public List<EntityReference> getSiblings(EntityReference reference) throws XWikiException
     {
         PageReference pageReference = getPageReference(reference);
         EntityReference parent = pageReference.getParent();
         if (reference instanceof DocumentReference) {
             parent = getDocumentReference(parent);
         }
-        List<EntityReference> orderedChildren = getChildren(parent);
-        int index = orderedChildren.indexOf(reference);
-        if (index >= 0 && index < orderedChildren.size()) {
-            return orderedChildren.subList(index + 1, orderedChildren.size());
+        return getPinnedChildPages(parent);
+    }
+
+    /**
+     * Returns siblings in a given direction.
+     *
+     * @param reference a given reference
+     * @param direction direction
+     * @return siblings
+     * @throws XWikiException in case an error occurs
+     */
+    public List<EntityReference> getSiblings(EntityReference reference, Direction direction) throws XWikiException
+    {
+        List<EntityReference> siblings = getSiblings(reference);
+        int index = siblings.indexOf(reference);
+        if (index >= 0) {
+            if (direction.equals(Direction.NEXT) && index < siblings.size()) {
+                return siblings.subList(index + 1, siblings.size());
+            } else if (index >= 1) {
+                List<EntityReference> list = siblings.subList(0, index);
+                Collections.reverse(list);
+                return list;
+            }
         }
         return new ArrayList<>();
     }
 
-    @Override
-    public List<EntityReference> getNextSiblings(EntityReference reference, int limit) throws XWikiException
+    /**
+     * Return siblings in given direction up to a limit.
+     *
+     * @param reference a page
+     * @param direction direction
+     * @param limit limit
+     * @return siblings
+     * @throws XWikiException in case an error occurs
+     */
+    public List<EntityReference> getSiblings(EntityReference reference, Direction direction, int limit)
+        throws XWikiException
     {
-        List<EntityReference> siblings = getNextSiblings(reference);
+        List<EntityReference> siblings = getSiblings(reference, direction);
         if (siblings.size() > limit) {
             return siblings.subList(0, limit);
         } else {
             return siblings;
         }
+    }
+
+    /**
+     * Returns first sibling in given direction.
+     *
+     * @param reference a page
+     * @param direction a direction
+     * @return sibling
+     * @throws XWikiException in case an error occurs
+     */
+    public EntityReference getSibling(EntityReference reference, Direction direction) throws XWikiException
+    {
+        List<EntityReference> siblings = getSiblings(reference, direction);
+        if (siblings.size() > 0) {
+            return siblings.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public int indexOf(EntityReference reference) throws XWikiException
+    {
+        List<EntityReference> siblings = getSiblings(reference);
+        return siblings.indexOf(reference);
     }
 
     /**
