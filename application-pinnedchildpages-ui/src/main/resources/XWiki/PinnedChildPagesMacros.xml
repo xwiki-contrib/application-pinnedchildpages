@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="XWiki.PinnedChildPagesMacros" locale="">
+<xwikidoc version="1.5" reference="XWiki.PinnedChildPagesMacros" locale="">
   <web>XWiki</web>
   <name>PinnedChildPagesMacros</name>
   <language/>
@@ -29,6 +29,7 @@
   <creator>xwiki:XWiki.Admin</creator>
   <parent>WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
+  <originalMetadataAuthor>xwiki:XWiki.Admin</originalMetadataAuthor>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
   <title>PinnedChildPagesMacros</title>
@@ -42,46 +43,36 @@
 #**
  * Displays ordered child pages of a given reference in a sortable list, optionally
  * keeping only children with XObject of a given class.
+ * TODO: maybe worth considering documentReference is the current document
  *#
-#macro (displaySortableChildren $documentReference $className $emptyListMessageKey)
+#macro (displaySortableChildren $documentReference $classReference $emptyListMessageKey)
   #set ($discard = $xwiki.ssx.use('XWiki.PinnedChildPagesMacros'))
   #set ($discard = $xwiki.jsx.use('XWiki.PinnedChildPagesMacros'))
   #set ($macro.orderedChildPages = $services.pinnedChildPages.getChildren($documentReference))
-  #set ($macro.counter = 0)
-  #if ($macro.orderedChildPages != $NULL)
+  #if ($macro.orderedChildPages.size() &gt; 0)
     {{html clean="false"}}
-    &lt;ul class="xwiki-pinned-child-pages xwiki-sortable"&gt;
-    #foreach ($reference in $macro.orderedChildPages)
-      #set ($macro.childPage = $xwiki.getDocument($reference))
-      #set ($macro.flag = true)
-      #if ($className != $NULL)
-        #set ($macro.childPageObj = $macro.childPage.getObject($className))
-        #if ($macro.childPageObj == $NULL)
-          #set ($macro.flag = false)
+      &lt;ul class="xwiki-pinned-child-pages xwiki-sortable"&gt;
+        #foreach ($reference in $macro.orderedChildPages)
+          #set ($macro.childPage = $xwiki.getDocument($reference))
+          #set ($macro.hideItem = false)
+          #if ($classReference != $NULL &amp;&amp; $macro.childPage.getObject($classReference) == $NULL)
+              #set ($macro.hideItem = true)
+          #end
+          &lt;li data-reference="$escapetool.xml($services.model.serialize($reference, 'compactwiki'))"#if ($macro.hideItem) class="xwiki-pinned-child-page-hidden"#end&gt;
+            $services.icon.renderHTML('page') &lt;a href="$escapetool.xml($xwiki.getURL($reference))"&gt;$macro.childPage.displayTitle&lt;/a&gt;
+          &lt;/li&gt;
         #end
+      &lt;/ul&gt;
+      #if ($emptyListMessageKey)
+        &lt;div class="xwiki-pinned-child-pages-empty-message"&gt;
+          $services.localization.render($emptyListMessageKey)
+        &lt;/div&gt;
       #end
-      #if ($macro.flag == true)
-        &lt;li data-reference="$escapetool.xml($services.model.serialize($reference, 'compactwiki'))"&gt;
-          $services.icon.renderHTML('page') &lt;a href="$escapetool.xml($xwiki.getURL($reference))"&gt;$macro.childPage.displayTitle&lt;/a&gt;
-        &lt;/li&gt;
-        #set ($macro.counter = $mathtool.add($macro.counter, 1))
-      #end
-    #end
-    &lt;/ul&gt;
-    #if ($macro.counter == 0 &amp;&amp; $emptyListMessageKey)
-    &lt;div class="xwiki-pinned-child-pages-empty-message"&gt;
-      $services.localization.render($emptyListMessageKey)
-    &lt;/div&gt;
-    #end
-    ## Add object number so that it can be obtained from JavaScript for storing the new order in the form before its submission.
-    #set ($macro.page = $xwiki.getDocument($documentReference))
-    #set ($macro.pinnedChildPagesObject = $macro.page.getObject($PINNED_CHILD_PAGES_CLASS))
-    &lt;input type="hidden" name="xwiki-pinned-child-pages-object-number" value="$macro.pinnedChildPagesObject.number"/&gt;
+      ## Add object number so that it can be obtained from JavaScript for storing the new order in the form before its submission.
+      #set ($macro.page = $xwiki.getDocument($documentReference))
+      #set ($macro.pinnedChildPagesObject = $macro.page.getObject($PINNED_CHILD_PAGES_CLASS))
+      &lt;input type="hidden" name="xwiki-pinned-child-pages-object-number" value="$macro.pinnedChildPagesObject.number"/&gt;
     {{/html}}
-  #else
-    {{warning}}
-    $services.localization.render('document.pinnedChildPages.error')
-    {{/warning}}
   #end
 #end
 {{/velocity}}</content>
@@ -323,31 +314,41 @@ require(['jquery', 'jquery-ui'], function($) {
   padding: 0;
   li {
     display: inline-block;
-    padding: 0 0.3em;
-    background: darken(@breadcrumb-bg, 2%);
-    margin-bottom: 0.3em;
+    background: @breadcrumb-bg;
+    border: 1px solid @xwiki-border-color;
     border-radius: @border-radius-base;
+    margin-bottom: 0.6rem;
+    padding: 0.4rem 0.6rem;
+    a {
+      margin-left: 0.2rem;
+    }
     &amp;.ui-sortable-helper {
       white-space: nowrap;
-      background: #428bca;
-      color: white;
-      padding: 0 0.3em 0 0.3em;
+      background: @btn-primary-bg;
+      color: @btn-primary-color;
+      padding: 0.3rem 0.6rem;
       /* Force height otherwise jQuery-UI will compute a dynamic height which is sometimes too large. */
-      height: 1.5em !important;
+      height: 2em !important;
       opacity: 0.6;
       a {
-        color: white;
+        color: @btn-primary-color;
+        text-decoration: none;
       }
     }
     &amp;.xwiki-ui-sortable-placeholder {
-      background: #428bca !important;
+      background: @btn-primary-bg !important;
       &amp;:before {
         content: "target";
       }
       color: transparent;
     }
+    &amp;.xwiki-pinned-child-page-hidden {
+      display: none;
+    }
   }
 }
+
+
 
 
 
