@@ -55,8 +55,11 @@ public interface PinnedChildPagesService
      */
     List<EntityReference> getChildren(EntityReference reference) throws XWikiException;
 
+    List<EntityReference> getChildren(EntityReference reference, EntityReference xclass) throws XWikiException;
+
     /**
      * Returns first next sibling.
+     *
      * @param reference a page
      * @return sibling
      * @throws XWikiException in case an error occurs
@@ -65,6 +68,7 @@ public interface PinnedChildPagesService
 
     /**
      * Returns references to the next siblings of a given page.
+     *
      * @param reference a reference to a page
      * @return list of next child pages
      * @throws XWikiException in case an error occurs
@@ -73,6 +77,7 @@ public interface PinnedChildPagesService
 
     /**
      * Returns references to the next siblings of a given page, up to a limit.
+     *
      * @param reference a reference to a page
      * @param limit maximum number of entries to be returned
      * @return list of next child pages
@@ -82,6 +87,7 @@ public interface PinnedChildPagesService
 
     /**
      * Returns references to the pinned child pages of a given page.
+     *
      * @param reference a reference to a page
      * @return list of pinned child pages references
      * @throws XWikiException in case an error occurs
@@ -90,6 +96,7 @@ public interface PinnedChildPagesService
 
     /**
      * Returns first previous sibling.
+     *
      * @param reference a page
      * @return previous sibling
      * @throws XWikiException in case an error occurs
@@ -98,6 +105,7 @@ public interface PinnedChildPagesService
 
     /**
      * Returns references to the previous siblings of a given page.
+     *
      * @param reference a reference to a page
      * @return list of previous pinned pages
      * @throws XWikiException in case an error occurs
@@ -106,6 +114,7 @@ public interface PinnedChildPagesService
 
     /**
      * Returns references to the previous siblings of a given page, up to a limit.
+     *
      * @param reference a reference to a page
      * @param limit maximum number of entries to be returned
      * @return list of previous pinned pages
@@ -114,21 +123,20 @@ public interface PinnedChildPagesService
     List<EntityReference> getPreviousSiblings(EntityReference reference, int limit) throws XWikiException;
 
     /**
-     * Returns index of reference among pinned child pages.
-     * @param reference a page
-     * @return page index in pinned pages
-     * @throws XWikiException in case of error
-     */
-    int indexOf(EntityReference reference) throws XWikiException;
-
-
-    /**
      * Returns ordered siblings of a page, including the page itself.
+     *
      * @param reference a page
      * @return list of siblings
      * @throws XWikiException in case of error
      */
     List<EntityReference> getSiblings(EntityReference reference) throws XWikiException;
 
-
+    /**
+     * Returns index of reference among pinned child pages.
+     *
+     * @param reference a page
+     * @return page index in pinned pages
+     * @throws XWikiException in case of error
+     */
+    int indexOf(EntityReference reference) throws XWikiException;
 }

@@ -22,6 +22,8 @@ package org.xwiki.contrib.pinnedchildpages.internal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -52,15 +54,6 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class DefaultPinnedChildPagesService implements PinnedChildPagesService
 {
-    /**
-     * Indicates siblings traversal direction.
-     */
-    enum Direction
-    {
-        PREVIOUS,
-        NEXT
-    }
-
     @Inject
     private Provider<XWikiContext> xcontextProvider;
 
@@ -80,6 +73,15 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
 
     @Inject
     private PageReferenceResolver<EntityReference> documentPageReferenceResolver;
+
+    /**
+     * Indicates siblings traversal direction.
+     */
+    enum Direction
+    {
+        PREVIOUS,
+        NEXT
+    }
 
     @Override
     public List<EntityReference> getChildren(EntityReference reference) throws XWikiException
@@ -112,6 +114,67 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
             }
         }
         return orderedChildPages;
+    }
+
+    @Override
+    public List<EntityReference> getChildren(EntityReference reference, EntityReference xclass) throws XWikiException
+    {
+        List<EntityReference> children = getChildren(reference);
+        if (xclass != null) {
+            XWikiContext xcontext = xcontextProvider.get();
+            XWiki xwiki = xcontext.getWiki();
+            Predicate<EntityReference> hasXObject = childReference -> {
+                try {
+                    XWikiDocument childDocument = xwiki.getDocument(childReference, xcontext);
+                    return childDocument.getXObject(xclass) != null;
+                } catch (XWikiException e) {
+                    return false;
+                }
+            };
+            return children.stream().filter(hasXObject).collect(Collectors.toList());
+        } else {
+            return children;
+        }
+    }
+
+    /**
+     * Converts a PageReference to a DocumentReference.
+     *
+     * @param reference a PageReference
+     * @return the given reference converted to a DocumentReference
+     */
+    public DocumentReference getDocumentReference(EntityReference reference)
+    {
+        return pageDocumentReferenceResolver.resolve(reference);
+    }
+
+    @Override
+    public EntityReference getNextSibling(EntityReference reference) throws XWikiException
+    {
+        return getSibling(reference, Direction.NEXT);
+    }
+
+    @Override
+    public List<EntityReference> getNextSiblings(EntityReference reference) throws XWikiException
+    {
+        return getSiblings(reference, Direction.NEXT);
+    }
+
+    @Override
+    public List<EntityReference> getNextSiblings(EntityReference reference, int limit) throws XWikiException
+    {
+        return getSiblings(reference, Direction.NEXT, limit);
+    }
+
+    /**
+     * Converts a DocumentReference to a PageReference.
+     *
+     * @param reference a DocumentReference
+     * @return the given reference converted to a PageReference
+     */
+    public PageReference getPageReference(EntityReference reference)
+    {
+        return documentPageReferenceResolver.resolve(reference);
     }
 
     @Override
@@ -163,24 +226,6 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
     }
 
     @Override
-    public List<EntityReference> getNextSiblings(EntityReference reference) throws XWikiException
-    {
-        return getSiblings(reference, Direction.NEXT);
-    }
-
-    @Override
-    public List<EntityReference> getNextSiblings(EntityReference reference, int limit) throws XWikiException
-    {
-        return getSiblings(reference, Direction.NEXT, limit);
-    }
-
-    @Override
-    public EntityReference getNextSibling(EntityReference reference) throws XWikiException
-    {
-        return getSibling(reference, Direction.NEXT);
-    }
-
-    @Override
     public List<EntityReference> getSiblings(EntityReference reference) throws XWikiException
     {
         PageReference pageReference = getPageReference(reference);
@@ -188,7 +233,26 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
         if (reference instanceof DocumentReference) {
             parent = getDocumentReference(parent);
         }
-        return getPinnedChildPages(parent);
+        return getChildren(parent);
+    }
+
+    /**
+     * Returns first sibling in given direction.
+     *
+     * @param reference a page
+     * @param direction a direction
+     * @return sibling
+     * @throws XWikiException in case an error occurs
+     */
+    protected EntityReference getSibling(EntityReference reference, Direction direction)
+        throws XWikiException
+    {
+        List<EntityReference> siblings = getSiblings(reference, direction);
+        if (siblings.size() > 0) {
+            return siblings.get(0);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -199,7 +263,8 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
      * @return siblings
      * @throws XWikiException in case an error occurs
      */
-    public List<EntityReference> getSiblings(EntityReference reference, Direction direction) throws XWikiException
+    public List<EntityReference> getSiblings(EntityReference reference, Direction direction)
+        throws XWikiException
     {
         List<EntityReference> siblings = getSiblings(reference);
         int index = siblings.indexOf(reference);
@@ -235,50 +300,10 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
         }
     }
 
-    /**
-     * Returns first sibling in given direction.
-     *
-     * @param reference a page
-     * @param direction a direction
-     * @return sibling
-     * @throws XWikiException in case an error occurs
-     */
-    public EntityReference getSibling(EntityReference reference, Direction direction) throws XWikiException
-    {
-        List<EntityReference> siblings = getSiblings(reference, direction);
-        if (siblings.size() > 0) {
-            return siblings.get(0);
-        } else {
-            return null;
-        }
-    }
-
     @Override
     public int indexOf(EntityReference reference) throws XWikiException
     {
         List<EntityReference> siblings = getSiblings(reference);
         return siblings.indexOf(reference);
-    }
-
-    /**
-     * Converts a PageReference to a DocumentReference.
-     *
-     * @param reference a PageReference
-     * @return the given reference converted to a DocumentReference
-     */
-    public DocumentReference getDocumentReference(EntityReference reference)
-    {
-        return pageDocumentReferenceResolver.resolve(reference);
-    }
-
-    /**
-     * Converts a DocumentReference to a PageReference.
-     *
-     * @param reference a DocumentReference
-     * @return the given reference converted to a PageReference
-     */
-    public PageReference getPageReference(EntityReference reference)
-    {
-        return documentPageReferenceResolver.resolve(reference);
     }
 }
