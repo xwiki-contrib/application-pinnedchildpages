@@ -24,6 +24,7 @@ import java.util.List;
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.stability.Unstable;
 
 import com.xpn.xwiki.XWikiException;
 
@@ -55,6 +56,16 @@ public interface PinnedChildPagesService
      */
     List<EntityReference> getChildren(EntityReference reference) throws XWikiException;
 
+    /**
+     * Same as {@link #getChildren(EntityReference, EntityReference)} except it returns only child pages having an
+     * XObject of the given XClass.
+     * @param reference a reference to a page
+     * @param xclass a reference to an XClass
+     * @return child pages having an XObject of the given XClass
+     * @throws XWikiException in case an error occurs
+     * @since 1.4.0
+     */
+    @Unstable
     List<EntityReference> getChildren(EntityReference reference, EntityReference xclass) throws XWikiException;
 
     /**

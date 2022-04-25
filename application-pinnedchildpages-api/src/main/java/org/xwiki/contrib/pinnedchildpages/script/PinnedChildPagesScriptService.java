@@ -75,6 +75,12 @@ public class PinnedChildPagesScriptService implements ScriptService
         }
     }
 
+    /**
+     * Gives scripting haccess to {@link PinnedChildPagesService#getChildren(EntityReference, EntityReference)}.
+     * @param reference a page reference
+     * @param xclass a reference to an XClass
+     * @return child pages with an XObject of the given XClass
+     */
     public List<EntityReference> getChildren(EntityReference reference, EntityReference xclass)
     {
         try {
@@ -120,6 +126,7 @@ public class PinnedChildPagesScriptService implements ScriptService
      *
      * @param reference a reference to a page
      * @return list of next siblings
+     * @throws XWikiException in case of error
      */
     public List<EntityReference> getNextSiblings(EntityReference reference) throws XWikiException
     {
@@ -132,6 +139,7 @@ public class PinnedChildPagesScriptService implements ScriptService
      * @param reference a reference to a page
      * @param limit maximum of entries to be returned
      * @return list of next siblings
+     * @throws XWikiException in case of error
      */
     public List<EntityReference> getNextSiblings(EntityReference reference, int limit) throws XWikiException
     {

@@ -128,6 +128,7 @@ public class DefaultPinnedChildPagesService implements PinnedChildPagesService
                     XWikiDocument childDocument = xwiki.getDocument(childReference, xcontext);
                     return childDocument.getXObject(xclass) != null;
                 } catch (XWikiException e) {
+                    // TODO: add logger
                     return false;
                 }
             };

@@ -51,6 +51,5 @@
   </modules>
   <properties>
     <xwiki.spoon.skip>true</xwiki.spoon.skip>
-    <xwiki.checkstyle.skip>true</xwiki.checkstyle.skip>
   </properties>
 </project>
